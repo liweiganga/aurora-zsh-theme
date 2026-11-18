@@ -6,8 +6,8 @@ A minimal Zsh theme inspired by the **Aurora** (Northern Lights) color palette: 
 
 ## Features
 
-- **Minimal prompt** — username@host, path, and git status on the left; `>` on the next line
-- **Command timing** — shows elapsed time of the last command on the right (auto-hidden for <0.1s)
+- **Minimal prompt** — first line: username@host, path, and git status, with the last command duration right-aligned; second line: `>` prompt
+- **Command timing** — elapsed time of the last command, right-aligned on the first line (auto-hidden for <0.1s)
 - **Git status** — branch name with dirty indicator, fully self-contained (no Oh My Zsh dependency)
 - **Single file** — one `.plugin.zsh` entry point, no external dependencies
 
@@ -18,7 +18,7 @@ A minimal Zsh theme inspired by the **Aurora** (Northern Lights) color palette: 
 | Username / `>` prompt | White |
 | `@` separator | Cyan |
 | Path `[~]` | Green |
-| Command duration (right) | Magenta |
+| Command duration (first line, right-aligned) | Magenta |
 | Git branch | Blue / Red |
 
 ## Installation
@@ -29,11 +29,10 @@ A minimal Zsh theme inspired by the **Aurora** (Northern Lights) color palette: 
 # In ~/.zshrc
 source "$HOME/.zi/bin/zi.zsh"
 
-zi light <your-username>/aurora-zsh-theme
+zi light liweiganga/aurora-zsh-theme
 
-# Optional: Turbo mode for faster startup
-zi ice wait lucid
-zi light <your-username>/aurora-zsh-theme
+zi ice wait lucid  # Optional: Turbo mode for faster startup
+zi light liweiganga/aurora-zsh-theme
 ```
 
 ### Manual
@@ -46,12 +45,12 @@ source /path/to/aurora-theme.plugin.zsh
 ## Screenshot
 
 ```
-aa@aa:[~/projects/aurora] git:(master) ✗
->                          3.2s
+aa@aa:[~/projects/aurora] git:(master) ✗                             3.2s
+>
 ```
 
-- Left: `user@host:[path] git:(branch) ✗` then `>` on next line
-- Right: command duration in magenta
+- First line: `user@host:[path] git:(branch) ✗` with the command duration right-aligned on the same line (magenta)
+- Second line: `>` prompt
 
 ## Compatibility
 

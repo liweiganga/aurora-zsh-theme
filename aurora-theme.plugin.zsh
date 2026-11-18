@@ -1,6 +1,8 @@
 #!/usr/bin/env zsh
 # =============================================================================
 #  Aurora — A minimal Zsh theme with command timing and Git status
+#  First line: user@host:[path] git status + last-command duration (right-aligned)
+#  Second line: "> " prompt
 #  Color palette: cyan + green + magenta (Aurora-like)
 #  Designed for zi (Z-Shell Plugin Manager), fully self-contained.
 # =============================================================================
@@ -10,22 +12,14 @@ if [[ -n "${_AURORA_THEME_LOADED:-}" ]]; then
 fi
 typeset -g _AURORA_THEME_LOADED=1
 
-# PROMPT 中使用了 $(...) / ${...}，必须开启 prompt_subst 才能在每次渲染时求值
-setopt PROMPT_SUBST
+
 
 # =============================================================================
-#  左侧提示符 (PROMPT)
+#  提示符：第一行显示 user@host:[路径] git 信息，耗时右对齐在同一行末尾
+#  第二行是输入提示符 "> "
 # =============================================================================
-PROMPT='%B%F{white}%n%b%F{cyan}@%m%F{white}:%B%F{green}[%~]%b'
-PROMPT+=' $(_aurora_git_prompt_info)%f'
-PROMPT+='\n%F{white}> %f'
-
-# =============================================================================
-#  右侧提示符 (RPROMPT): 显示上一条命令的执行耗时
-# =============================================================================
-ZLE_RPROMPT_INDENT=0   # 去掉 zsh 默认预留的右侧空隙
-RPROMPT='%F{magenta}${AURORA_LAST_DURATION}%f'
-
+typeset -g _AURORA_PROMPT_LEFT='%B%F{white}%n%b%F{cyan}@%m%F{white}:%B%F{green}[%~]%b'
+typeset -g _AURORA_PROMPT_CONT='\n%F{white}> %f'
 # =============================================================================
 #  命令计时
 # =============================================================================
@@ -50,6 +44,28 @@ _aurora_precmd() {
       AURORA_LAST_DURATION=$(printf '%dm%02ds' $((elapsed/60)) $((elapsed%60)))  # 如 1m05s
     fi
   fi
+  # ---- 把耗时右对齐拼到第一行末尾 ----
+  local first_exp git_info
+  git_info=$(_aurora_git_prompt_info)
+  first_exp=$(print -P -- "${_AURORA_PROMPT_LEFT} ${git_info}%f")
+  # 去掉 ANSI 转义序列后按显示宽度计数（${(m)#}）
+  local plain=${first_exp//$'\e'\[[0-9;]*m/}
+  local left_width=${(m)#plain}
+
+  local duration=${AURORA_LAST_DURATION}
+  local padded=""
+  if [[ -n ${duration} ]]; then
+    local dur_width=${(m)#duration}
+    local pad=$(( COLUMNS - left_width - dur_width ))
+    (( pad < 1 )) && pad=1
+    padded=${(l.${pad}.)duration}
+  fi
+
+  # 拼接最终 PROMPT；把已有 % 加倍，避免路径中的 % 被当作转义
+  local cont_exp
+  cont_exp=$(print -P -- "${_AURORA_PROMPT_CONT}")
+  local final="${first_exp}${padded}${cont_exp}"
+  PROMPT=${final//\%/\%\%}
 }
 
 autoload -Uz add-zsh-hook
@@ -91,8 +107,9 @@ _aurora_git_prompt_info() {
 _aurora_unload() {
   add-zsh-hook -d preexec _aurora_preexec
   add-zsh-hook -d precmd _aurora_precmd
-  unset PROMPT RPROMPT
+  unset PROMPT
   unsetopt PROMPT_SUBST
+  unset _AURORA_PROMPT_LEFT _AURORA_PROMPT_CONT
   unset AURORA_LAST_DURATION _AURORA_CMD_START
   unset AURORA_GIT_PROMPT_PREFIX AURORA_GIT_PROMPT_SUFFIX
   unset AURORA_GIT_PROMPT_DIRTY AURORA_GIT_PROMPT_CLEAN
