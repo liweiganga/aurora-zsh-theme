@@ -55,7 +55,7 @@ _aurora_precmd() {
   # ---- 把耗时右对齐拼到第一行末尾 ----
   local first_exp git_info
   git_info=$(_aurora_git_prompt_info)
-  first_exp=$(print -P -- "${_AURORA_PROMPT_LEFT} ${git_info}%f")
+  first_exp=$(print -P -- "${_AURORA_PROMPT_LEFT}${git_info:+ }${git_info}%f")
   # 去掉 ANSI 转义序列后按显示宽度计数（${(m)#}）
   local plain=${first_exp//$'\e'\[[0-9;]*m/}
   local left_width=${(m)#plain}
@@ -64,7 +64,9 @@ _aurora_precmd() {
   local padded=""
   if [[ -n ${duration} ]]; then
     local dur_width=${(m)#duration}
-    local pad=$(( COLUMNS - left_width - dur_width ))
+    # 留 1 列安全余量：铺满最后一列会触发终端 auto-margin 折行，
+    # 导致秒数掉到第二行、"> " 掉到第三行
+    local pad=$(( COLUMNS - left_width - dur_width - 1 ))
     (( pad < 1 )) && pad=1
     padded=${(l.${pad}.)duration}
   fi
