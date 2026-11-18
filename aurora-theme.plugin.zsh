@@ -24,11 +24,8 @@ typeset -g AURORA_COLOR_PURPLE="#bd93f9"    # purple      git:
 typeset -g AURORA_COLOR_RED="#ff5555"       # red         分支名
 typeset -g AURORA_COLOR_YELLOW="#f1fa8c"    # yellow      ✗ 脏工作区
 
-#  耗时右对齐时距右边界的预留列数。若你的终端上报的宽度不准导致折行，可调大。
-typeset -g AURORA_RIGHT_MARGIN=1
-
 # =============================================================================
-#  提示符：第一行显示 user@host:[路径] git 信息，耗时右对齐在同一行末尾
+#  提示符：第一行显示 user@host:[路径] git 信息，耗时跟在行尾
 #  第二行是输入提示符 "> "
 # =============================================================================
 typeset -g _AURORA_PROMPT_LEFT="%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b"
@@ -55,35 +52,19 @@ _aurora_precmd() {
       AURORA_LAST_DURATION=$(printf '%dm%02ds' $((elapsed/60)) $((elapsed%60)))  # 如 1m05s
     fi
   fi
-  # ---- 把耗时右对齐拼到第一行末尾 ----
+  # ---- duration inline after first line; no width math, never wraps ----
   local first_exp git_info
   git_info=$(_aurora_git_prompt_info)
   first_exp=$(print -P -- "${_AURORA_PROMPT_LEFT}${git_info:+ }${git_info}%f")
-  # 去掉 ANSI 转义序列后按显示宽度计数（${(m)#}）
-  local plain=${first_exp//$'\e'\[[0-9;]*m/}
-  local left_width=${(m)#plain}
-
   local duration=${AURORA_LAST_DURATION}
-  local padded=""
+  local dur_exp=""
   if [[ -n ${duration} ]]; then
-    local dur_width=${(m)#duration}
-    # 终端真实列数优先取 tty（有些环境 $COLUMNS 与实际宽度不一致，导致折行）
-    local cols=${COLUMNS:-0}
-    local tty_size
-    if tty_size=$(stty size 2>/dev/null); then
-      local tty_cols=${tty_size##* }
-      [[ ${tty_cols} =~ ^[0-9]+$ && ${tty_cols} -gt 0 ]] && cols=${tty_cols}
-    fi
-    # 预留 AURORA_RIGHT_MARGIN 列：铺满最后一列会触发终端 auto-margin 折行
-    local pad=$(( cols - left_width - dur_width - AURORA_RIGHT_MARGIN ))
-    (( pad < 1 )) && pad=1
-    padded=${(l.${pad}.)duration}
+    dur_exp=$(print -P -- "  %F{${AURORA_COLOR_CYAN}}${duration}%f")
   fi
 
-  # 拼接最终 PROMPT；把已有 % 加倍，避免路径中的 % 被当作转义
   local cont_exp
   cont_exp=$(print -P -- "${_AURORA_PROMPT_CONT}")
-  local final="${first_exp}${padded}${cont_exp}"
+  local final="${first_exp}${dur_exp}${cont_exp}"
   PROMPT=${final//\%/\%\%}
 }
 
