@@ -36,9 +36,7 @@ _aurora_precmd() {
     local now=${EPOCHREALTIME:-$EPOCHSECONDS}
     local elapsed=$(( now - _AURORA_CMD_START ))
     _AURORA_CMD_START=""
-    if (( elapsed < 0.1 )); then
-      AURORA_LAST_DURATION=""                                # 瞬时命令不显示
-    elif (( elapsed < 60 )); then
+    if (( elapsed < 60 )); then
       AURORA_LAST_DURATION=$(printf '%.1fs' $elapsed)        # 如 3.2s
     else
       AURORA_LAST_DURATION=$(printf '%dm%02ds' $((elapsed/60)) $((elapsed%60)))  # 如 1m05s
