@@ -9,27 +9,34 @@ if [[ -n "${_AURORA_THEME_LOADED:-}" ]]; then
   return 0
 fi
 typeset -g _AURORA_THEME_LOADED=1
+
+# PROMPT 中使用了 $(...) / ${...}，必须开启 prompt_subst 才能在每次渲染时求值
+setopt PROMPT_SUBST
+
 # =============================================================================
 #  左侧提示符 (PROMPT)
 # =============================================================================
 PROMPT='%B%F{white}%n%b%F{cyan}@%m%F{white}:%B%F{green}[%~]%b'
-PROMPT+=' $(_aurora_git_prompt_info)'
-PROMPT+='
-%F{white}> %f'
+PROMPT+=' $(_aurora_git_prompt_info)%f'
+PROMPT+='\n%F{white}> %f'
+
 # =============================================================================
 #  右侧提示符 (RPROMPT): 显示上一条命令的执行耗时
 # =============================================================================
 ZLE_RPROMPT_INDENT=0   # 去掉 zsh 默认预留的右侧空隙
-RPROMPT=$'%{\e[1A%}%F{magenta}${AURORA_LAST_DURATION}%{\e[1B%}'
+RPROMPT='%F{magenta}${AURORA_LAST_DURATION}%f'
+
 # =============================================================================
 #  命令计时
 # =============================================================================
 zmodload zsh/datetime
 typeset -g AURORA_LAST_DURATION=""
 typeset -g _AURORA_CMD_START=""
+
 _aurora_preexec() {
   _AURORA_CMD_START=${EPOCHREALTIME:-$EPOCHSECONDS}
 }
+
 _aurora_precmd() {
   if [[ -n ${_AURORA_CMD_START} ]]; then
     local now=${EPOCHREALTIME:-$EPOCHSECONDS}
@@ -44,19 +51,22 @@ _aurora_precmd() {
     fi
   fi
 }
+
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec _aurora_preexec
 add-zsh-hook precmd _aurora_precmd
+
 # =============================================================================
 #  Git 状态显示（自包含，不依赖 Oh My Zsh）
 # =============================================================================
-# Git 样式设置
-typeset -g AURORA_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
-typeset -g AURORA_GIT_PROMPT_SUFFIX="%{$reset_color%} "
-typeset -g AURORA_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗"
-typeset -g AURORA_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
-# 兼容性：如果 Oh My Zsh 的 git_prompt_info 存在，优先使用它
+# Git 样式设置（使用 zsh 内建 prompt 转义，不依赖 OMZ 的 $fg 数组）
+typeset -g AURORA_GIT_PROMPT_PREFIX="%B%F{blue}git:(%F{red}"
+typeset -g AURORA_GIT_PROMPT_SUFFIX="%f%b "
+typeset -g AURORA_GIT_PROMPT_DIRTY="%F{blue}) %F{yellow}✗%f"
+typeset -g AURORA_GIT_PROMPT_CLEAN="%F{blue})%f"
+
 _aurora_git_prompt_info() {
+  # 兼容性：如果 Oh My Zsh 的 git_prompt_info 存在，优先使用它
   if (( ${+functions[git_prompt_info]} )); then
     git_prompt_info
     return
@@ -72,8 +82,9 @@ _aurora_git_prompt_info() {
   else
     dirty="${AURORA_GIT_PROMPT_CLEAN}"
   fi
-  printf '%s%s%s' "${AURORA_GIT_PROMPT_PREFIX}" "${branch}" "${dirty}"
+  print -n -- "${AURORA_GIT_PROMPT_PREFIX}${branch}${dirty}${AURORA_GIT_PROMPT_SUFFIX}"
 }
+
 # =============================================================================
 #  卸载清理函数
 # =============================================================================
@@ -81,6 +92,7 @@ _aurora_unload() {
   add-zsh-hook -d preexec _aurora_preexec
   add-zsh-hook -d precmd _aurora_precmd
   unset PROMPT RPROMPT
+  unsetopt PROMPT_SUBST
   unset AURORA_LAST_DURATION _AURORA_CMD_START
   unset AURORA_GIT_PROMPT_PREFIX AURORA_GIT_PROMPT_SUFFIX
   unset AURORA_GIT_PROMPT_DIRTY AURORA_GIT_PROMPT_CLEAN
