@@ -1,8 +1,8 @@
 # Aurora Zsh Theme
 
-A minimal Zsh theme inspired by the **Aurora** (Northern Lights) color palette: **cyan + green + magenta**.
+A minimal Zsh theme using the **[Dracula](https://github.com/dracula/dracula-theme)** color palette (true-color `#rrggbb`).
 
-![Aurora color palette](https://img.shields.io/badge/cyan-cyan) ![green-green](https://img.shields.io/badge/green-green) ![magenta-magenta](https://img.shields.io/badge/magenta-magenta)
+![Dracula](https://img.shields.io/badge/theme-Dracula-282a36) ![purple](https://img.shields.io/badge/purple-bd93f9) ![pink](https://img.shields.io/badge/pink-ff79c6) ![green](https://img.shields.io/badge/green-50fa7b)
 
 ## Features
 
@@ -15,11 +15,14 @@ A minimal Zsh theme inspired by the **Aurora** (Northern Lights) color palette: 
 
 | Element | Color |
 |---------|-------|
-| Username / `>` prompt | White |
-| `@` separator | Cyan |
-| Path `[~]` | Green |
-| Command duration (first line, right-aligned) | Magenta |
-| Git branch | Blue / Red |
+| Username / `>` prompt | Foreground `#f8f8f2` |
+| `@` separator / duration | Cyan `#8be9fd` |
+| Path `[~]` | Green `#50fa7b` |
+| `git:( )` frame | Purple `#bd93f9` |
+| Git branch | Red `#ff5555` |
+| Dirty indicator `✗` | Yellow `#f1fa8c` |
+
+All colors are defined as `AURORA_COLOR_*` variables at the top of the plugin, so you can override them after loading the theme.
 
 ## Installation
 
