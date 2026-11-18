@@ -27,18 +27,23 @@ All colors are defined as `AURORA_COLOR_*` variables at the top of the plugin, s
 
 ### 方式一：使用 [zi](https://github.com/z-shell/zi) 插件管理器（推荐）
 
+**1. 基本安装**
+
 ```zsh
-# 在 ~/.zshrc 中添加
-source "$HOME/.zi/bin/zi.zsh"
-
+# 在 ~/.zshrc 中添加（zi 已初始化的前提下）
 zi light liweiganga/aurora-zsh-theme
+```
 
-# 可选：Turbo 模式（延迟加载，加快启动）
+**2. 可选：Turbo 延迟加载模式**（与上面的基本安装二选一，不要叠加）
+
+```zsh
 zi ice wait lucid
 zi light liweiganga/aurora-zsh-theme
 ```
 
-更新主题：
+> 说明：`zi ice` 只对紧随其后的那条命令生效，互不影响；`wait` 表示等 .zshrc 处理完、首个提示符出现后再加载，`lucid` 表示跳过加载提示信息。
+
+**更新主题：**
 
 ```zsh
 zi update --all
