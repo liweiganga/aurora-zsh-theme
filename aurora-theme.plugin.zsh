@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 #  Aurora — A minimal Zsh theme with command timing and Git status
-#  First line: user@host:[path] git status + last-command duration (right-aligned)
+#  First line: user@host:[path] git status
 #  Second line: "> " prompt
 #  Color palette: Dracula (https://github.com/dracula/dracula-theme)
 #  Designed for zi (Z-Shell Plugin Manager), fully self-contained.
@@ -30,46 +30,18 @@ typeset -g AURORA_COLOR_YELLOW="#f1fa8c"    # yellow      ✗ 脏工作区
 # =============================================================================
 typeset -g _AURORA_PROMPT_LEFT="%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b"
 typeset -g _AURORA_PROMPT_CONT=$'\n'"%F{${AURORA_COLOR_FG}}> %f"   # 真实换行符，不依赖 print -P 的转义解释
-# =============================================================================
-#  命令计时
-# =============================================================================
-zmodload zsh/datetime
-typeset -g AURORA_LAST_DURATION=""
-typeset -g _AURORA_CMD_START=""
-
-_aurora_preexec() {
-  _AURORA_CMD_START=${EPOCHREALTIME:-$EPOCHSECONDS}
-}
-
 _aurora_precmd() {
-  if [[ -n ${_AURORA_CMD_START} ]]; then
-    local now=${EPOCHREALTIME:-$EPOCHSECONDS}
-    local elapsed=$(( now - _AURORA_CMD_START ))
-    _AURORA_CMD_START=""
-    if (( elapsed < 60 )); then
-      AURORA_LAST_DURATION=$(printf '%.1fs' $elapsed)        # 如 3.2s
-    else
-      AURORA_LAST_DURATION=$(printf '%dm%02ds' $((elapsed/60)) $((elapsed%60)))  # 如 1m05s
-    fi
-  fi
-  # ---- duration inline after first line; no width math, never wraps ----
+  # ---- 第一行 + 第二行 ----
   local first_exp git_info
   git_info=$(_aurora_git_prompt_info)
   first_exp=$(print -P -- "${_AURORA_PROMPT_LEFT}${git_info:+ }${git_info}%f")
-  local duration=${AURORA_LAST_DURATION}
-  local dur_exp=""
-  if [[ -n ${duration} ]]; then
-    dur_exp=$(print -P -- "  %F{${AURORA_COLOR_CYAN}}${duration}%f")
-  fi
-
   local cont_exp
   cont_exp=$(print -P -- "${_AURORA_PROMPT_CONT}")
-  local final="${first_exp}${dur_exp}${cont_exp}"
+  local final="${first_exp}${cont_exp}"
   PROMPT=${final//\%/\%\%}
 }
 
 autoload -Uz add-zsh-hook
-add-zsh-hook preexec _aurora_preexec
 add-zsh-hook precmd _aurora_precmd
 
 # =============================================================================
@@ -105,17 +77,15 @@ _aurora_git_prompt_info() {
 #  卸载清理函数
 # =============================================================================
 _aurora_unload() {
-  add-zsh-hook -d preexec _aurora_preexec
   add-zsh-hook -d precmd _aurora_precmd
   unset PROMPT
   unsetopt PROMPT_SUBST
   unset _AURORA_PROMPT_LEFT _AURORA_PROMPT_CONT
-  unset AURORA_LAST_DURATION _AURORA_CMD_START
   unset AURORA_COLOR_FG AURORA_COLOR_CYAN AURORA_COLOR_GREEN AURORA_COLOR_PURPLE
   unset AURORA_COLOR_RED AURORA_COLOR_YELLOW
   unset AURORA_GIT_PROMPT_PREFIX AURORA_GIT_PROMPT_SUFFIX
   unset AURORA_GIT_PROMPT_DIRTY AURORA_GIT_PROMPT_CLEAN
   unset _AURORA_THEME_LOADED
-  unfunction _aurora_preexec _aurora_precmd _aurora_git_prompt_info 2>/dev/null
+  unfunction _aurora_precmd _aurora_git_prompt_info 2>/dev/null
   print -P "%F{yellow}Aurora theme unloaded.%f"
 }

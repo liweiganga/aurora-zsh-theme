@@ -6,8 +6,7 @@ A minimal Zsh theme using the **[Dracula](https://github.com/dracula/dracula-the
 
 ## Features
 
-- **Minimal prompt** — first line: username@host, path, and git status, with the last command duration at the end of the line; second line: `>` prompt
-- **Command timing** — elapsed time of the last command, shown at the end of the first line (auto-hidden for <0.1s)
+- **Minimal prompt** — first line: username@host, path, and git status; second line: `>` prompt
 - **Git status** — branch name with dirty indicator, fully self-contained (no Oh My Zsh dependency)
 - **Single file** — one `.plugin.zsh` entry point, no external dependencies
 
@@ -16,7 +15,7 @@ A minimal Zsh theme using the **[Dracula](https://github.com/dracula/dracula-the
 | Element | Color |
 |---------|-------|
 | Username / `>` prompt | Foreground `#f8f8f2` |
-| `@` separator / duration | Cyan `#8be9fd` |
+| `@` separator | Cyan `#8be9fd` |
 | Path `[~]` | Green `#50fa7b` |
 | `git:( )` frame | Purple `#bd93f9` |
 | Git branch | Red `#ff5555` |
