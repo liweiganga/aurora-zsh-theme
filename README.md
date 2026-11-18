@@ -25,33 +25,51 @@ All colors are defined as `AURORA_COLOR_*` variables at the top of the plugin, s
 
 ## Installation
 
-### With [zi](https://github.com/z-shell/zi) (recommended)
+### 方式一：使用 [zi](https://github.com/z-shell/zi) 插件管理器（推荐）
 
 ```zsh
-# In ~/.zshrc
+# 在 ~/.zshrc 中添加
 source "$HOME/.zi/bin/zi.zsh"
 
 zi light liweiganga/aurora-zsh-theme
 
-zi ice wait lucid  # Optional: Turbo mode for faster startup
+# 可选：Turbo 模式（延迟加载，加快启动）
+zi ice wait lucid
 zi light liweiganga/aurora-zsh-theme
 ```
 
-### Manual
+更新主题：
 
 ```zsh
-# In ~/.zshrc
-source /path/to/aurora-theme.plugin.zsh
+zi update --all
 ```
+
+### 方式二：手动安装
+
+```zsh
+# 1. 克隆仓库到任意目录（例如 ~/liweigang）
+git clone https://github.com/liweiganga/aurora-zsh-theme.git
+
+# 2. 在 ~/.zshrc 中添加
+source ~/liweigang/aurora-zsh-theme/aurora-theme.plugin.zsh
+```
+
+手动安装时更新主题：
+
+```zsh
+cd ~/liweigang/aurora-zsh-theme && git pull
+```
+
+两种方式安装后，执行 `exec zsh` 或 `source ~/.zshrc` 生效。
 
 ## Screenshot
 
 ```
-aa@aa:[~/projects/aurora] git:(master) ✗                             3.2s
+max@arch:[~/projects/aurora] git:(main) ✗
 >
 ```
 
-- First line: `user@host:[path] git:(branch) ✗` with the command duration right-aligned on the same line (magenta)
+- First line: `user@host:[path] git:(branch) ✗`
 - Second line: `>` prompt
 
 ## Compatibility
