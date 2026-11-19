@@ -45,11 +45,21 @@ _aurora_precmd() {
       AURORA_LAST_DURATION="$((elapsed/60))m$((elapsed%60))s"
     fi
   fi
-  # 每次提示符刷新前重算 RPROMPT（有空值/非空两种状态）
+  # 多行 PROMPT 时 RPROMPT 只会右对齐在最后一行，因此把耗时
+  # 作为第一行的一部分，用空格填充推到行尾（宽度按可见字符数计算）
+  setopt localoptions extendedglob
+  local _left="%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b"
+  local _git=$(_aurora_git_prompt_info)
+  typeset -g _AURORA_PROMPT_FIRST="${_left} ${_git}"
   if [[ -n ${AURORA_LAST_DURATION} ]]; then
-    RPROMPT="%F{${AURORA_COLOR_CYAN}}${AURORA_LAST_DURATION}%f"
+    local expanded=${(%)_AURORA_PROMPT_FIRST}
+    # 去掉 ANSI 转义序列，得到第一行可见宽度
+    local plain=${expanded//$'\e'\[[0-9;]#m/}
+    local pad=$(( COLUMNS - ${#plain} - ${#AURORA_LAST_DURATION} ))
+    (( pad < 1 )) && pad=1
+    typeset -g _AURORA_DURATION_PART="${(l:${pad}:: :)}%F{${AURORA_COLOR_CYAN}}${AURORA_LAST_DURATION}%f"
   else
-    RPROMPT=""
+    typeset -g _AURORA_DURATION_PART=""
   fi
 }
 autoload -Uz add-zsh-hook
@@ -84,12 +94,12 @@ _aurora_git_prompt_info() {
 
 # =============================================================================
 #  提示符 — 用 prompt_subst 让 zsh 在显示时统一展开所有 % 转义
-#  RPROMPT 由 _aurora_precmd 按 AURORA_LAST_DURATION 动态生成，
-#  zsh/zle 自动按终端宽度把它右对齐在第一行，不依赖任何空格填充或光标转义
+#  耗时由 _aurora_precmd 填充进第一行行尾（多行 PROMPT 下 RPROMPT 只能
+#  右对齐到最后一行，故不用 RPROMPT），不依赖任何光标转义
 # =============================================================================
 setopt prompt_subst
 PROMPT='%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b'
-PROMPT+=' $(_aurora_git_prompt_info)'
+PROMPT+=' $(_aurora_git_prompt_info)${_AURORA_DURATION_PART}'
 PROMPT+='
 %F{${AURORA_COLOR_FG}}> %f'
 
@@ -111,6 +121,7 @@ _aurora_unload() {
   unset PROMPT RPROMPT
   unsetopt prompt_subst
   unset AURORA_LAST_DURATION _AURORA_CMD_START
+  unset _AURORA_PROMPT_FIRST _AURORA_DURATION_PART
   unset AURORA_COLOR_FG AURORA_COLOR_CYAN AURORA_COLOR_GREEN AURORA_COLOR_PURPLE
   unset AURORA_COLOR_RED AURORA_COLOR_YELLOW
   unset AURORA_GIT_PROMPT_PREFIX AURORA_GIT_PROMPT_SUFFIX
