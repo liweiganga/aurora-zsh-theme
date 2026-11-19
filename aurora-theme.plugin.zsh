@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # =============================================================================
 #  Aurora — A minimal Zsh theme with command timing and Git status
-#  First line: user@host:[path] git status + last-command duration (inline)
+#  First line: user@host:[path] git status          (right: last-command duration)
 #  Second line: "> " prompt
 #  Color palette: Dracula (https://github.com/dracula/dracula-theme)
 #  Designed for zi (Z-Shell Plugin Manager), fully self-contained.
@@ -45,6 +45,12 @@ _aurora_precmd() {
       AURORA_LAST_DURATION="$((elapsed/60))m$((elapsed%60))s"
     fi
   fi
+  # 每次提示符刷新前重算 RPROMPT（有空值/非空两种状态）
+  if [[ -n ${AURORA_LAST_DURATION} ]]; then
+    RPROMPT="%F{${AURORA_COLOR_CYAN}}${AURORA_LAST_DURATION}%f"
+  else
+    RPROMPT=""
+  fi
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec _aurora_preexec
@@ -77,20 +83,13 @@ _aurora_git_prompt_info() {
 }
 
 # =============================================================================
-#  耗时片段（返回 prompt 转义字符串，由 zsh 在显示时展开）
-# =============================================================================
-_aurora_duration_part() {
-  if [[ -n ${AURORA_LAST_DURATION} ]]; then
-    print -n -- "  %F{${AURORA_COLOR_CYAN}}${AURORA_LAST_DURATION}%f"
-  fi
-}
-
-# =============================================================================
 #  提示符 — 用 prompt_subst 让 zsh 在显示时统一展开所有 % 转义
+#  RPROMPT 由 _aurora_precmd 按 AURORA_LAST_DURATION 动态生成，
+#  zsh/zle 自动按终端宽度把它右对齐在第一行，不依赖任何空格填充或光标转义
 # =============================================================================
 setopt prompt_subst
 typeset -g _AURORA_PROMPT_LEFT="%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b"
-PROMPT='${_AURORA_PROMPT_LEFT} $(_aurora_git_prompt_info)$(_aurora_duration_part)
+PROMPT='${_AURORA_PROMPT_LEFT} $(_aurora_git_prompt_info)
 %F{${AURORA_COLOR_FG}}> %f'
 
 # =============================================================================
@@ -108,7 +107,7 @@ fi
 _aurora_unload() {
   add-zsh-hook -d preexec _aurora_preexec
   add-zsh-hook -d precmd _aurora_precmd
-  unset PROMPT
+  unset PROMPT RPROMPT
   unsetopt prompt_subst
   unset _AURORA_PROMPT_LEFT
   unset AURORA_LAST_DURATION _AURORA_CMD_START
@@ -117,6 +116,6 @@ _aurora_unload() {
   unset AURORA_GIT_PROMPT_PREFIX AURORA_GIT_PROMPT_SUFFIX
   unset AURORA_GIT_PROMPT_DIRTY AURORA_GIT_PROMPT_CLEAN
   unset _AURORA_THEME_LOADED
-  unfunction _aurora_preexec _aurora_precmd _aurora_git_prompt_info _aurora_duration_part 2>/dev/null
+  unfunction _aurora_preexec _aurora_precmd _aurora_git_prompt_info 2>/dev/null
   print -P "%F{yellow}Aurora theme unloaded.%f"
 }
