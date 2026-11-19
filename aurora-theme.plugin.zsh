@@ -2,7 +2,7 @@
 # =============================================================================
 #  Aurora — A minimal Zsh theme with command timing and Git status
 #  First line: user@host:[path] git status          (right: last-command duration)
-#  Second line: "> " prompt
+#  Second line: "+= " prompt
 #  Color palette: Dracula (https://github.com/dracula/dracula-theme)
 #  Designed for zi (Z-Shell Plugin Manager), fully self-contained.
 # =============================================================================
@@ -88,8 +88,9 @@ _aurora_git_prompt_info() {
 #  zsh/zle 自动按终端宽度把它右对齐在第一行，不依赖任何空格填充或光标转义
 # =============================================================================
 setopt prompt_subst
-typeset -g _AURORA_PROMPT_LEFT="%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b"
-PROMPT='${_AURORA_PROMPT_LEFT} $(_aurora_git_prompt_info)
+PROMPT='%B%F{${AURORA_COLOR_FG}}%n%b%F{${AURORA_COLOR_CYAN}}@%m%F{${AURORA_COLOR_FG}}:%B%F{${AURORA_COLOR_GREEN}}[%~]%b'
+PROMPT+=' $(_aurora_git_prompt_info)'
+PROMPT+='
 %F{${AURORA_COLOR_FG}}> %f'
 
 # =============================================================================
@@ -109,7 +110,6 @@ _aurora_unload() {
   add-zsh-hook -d precmd _aurora_precmd
   unset PROMPT RPROMPT
   unsetopt prompt_subst
-  unset _AURORA_PROMPT_LEFT
   unset AURORA_LAST_DURATION _AURORA_CMD_START
   unset AURORA_COLOR_FG AURORA_COLOR_CYAN AURORA_COLOR_GREEN AURORA_COLOR_PURPLE
   unset AURORA_COLOR_RED AURORA_COLOR_YELLOW
